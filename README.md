@@ -1,2 +1,2 @@
 # Unity_UGUIAnimation
-Unity UGUI Animatioin Component
+Unity UGUI Animation Component

@@ -136,7 +136,7 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
             lLockRect.center = new Vector2(lGroupRect.xMin + 16 + 8, lGroupRect.yMin + 8);
             DrawerBasic.DrawTexture(lLockRect, Color.white, DrawerBasic.TimeLineStyles.lockIcon.image);
         }
-        GUI.Label(new Rect(lGroupRect.x + 32, lGroupRect.y, lGroupRect.width - 16, lGroupRect.height), pGroup.target == null ? "Group" : $"Group : {pGroup.target.name}");
+        GUI.Label(new Rect(lGroupRect.x + 32, lGroupRect.y, lGroupRect.width - 16, lGroupRect.height), pGroup.Target == null ? "Group" : $"Group : {pGroup.Target.name}");
 
         // Plus Button
         bool lPlusClicked = false;
@@ -171,11 +171,11 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
                 });
             }
 
-            if (pGroup.target != null)
+            if (pGroup.Target != null)
             {
                 for(eTrackType lType = eTrackType.Active; lType < eTrackType.End; lType++)
                 {
-                    if (pGroup.IsContainTrack(lType) == false && UIAnimationTrack.IsAvailableTrackType(lType, pGroup.target))
+                    if (pGroup.IsContainTrack(lType) == false && UIAnimationTrack.IsAvailableTrackType(lType, pGroup.Target))
                         lMenu.AddItem(new GUIContent(string.Format("Track/{0}", lType.ToString())), false, () => { _AddTrack(pGroup, lType); });
                 }
             }
@@ -198,14 +198,14 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
                 {
                     Rect objectRect = _GetRect(pBaseRect, 20, ref pNextPosY);
                     objectRect = _DrawContentTexture(objectRect, _GroupContentColor, 2);
-                    GameObject lNewTarget = (GameObject)EditorGUI.ObjectField(objectRect, "Target", pGroup.target, typeof(GameObject), true);
-                    if(lNewTarget != pGroup.target)
+                    GameObject lNewTarget = (GameObject)EditorGUI.ObjectField(objectRect, "Target", pGroup.Target, typeof(GameObject), true);
+                    if(lNewTarget != pGroup.Target)
                         pGroup.SetTarget(lNewTarget);
                 }
             }
 
             // Tracks
-            if (pGroup.target != null)
+            if (pGroup.Target != null)
             {
                 Rect lTitleRect = _GetRect(pBaseRect, 20, ref pNextPosY);
                 lTitleRect = _DrawContentTexture(lTitleRect, _GroupSubTitleColor, 1);
@@ -226,7 +226,7 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
 
                     for (eTrackType lType = eTrackType.Active; lType < eTrackType.End; lType++)
                     {
-                        if (pGroup.IsContainTrack(lType) == false && UIAnimationTrack.IsAvailableTrackType(lType, pGroup.target))
+                        if (pGroup.IsContainTrack(lType) == false && UIAnimationTrack.IsAvailableTrackType(lType, pGroup.Target))
                         {
                             eTrackType lSelectType = lType;
                             lMenu.AddItem(new GUIContent(string.Format("{0}", lSelectType.ToString())), false, () => { _AddTrack(pGroup, lSelectType); });
@@ -253,20 +253,20 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
     private void _ShowTracks(Rect pBaseRect, ref float pNextYPos, Event pEvent, UIAnimationGroup pGroup)
     {
         Rect pTrackRect;
-        for (int lIndex = 0; lIndex < pGroup.count; ++lIndex)
+        for (int lIndex = 0; lIndex < pGroup.Count; ++lIndex)
         {
             UIAnimationTrack pTrack = pGroup[lIndex];
             pTrackRect = _GetRect(pBaseRect, 20, ref pNextYPos);
             Color pTrackBGColor = lIndex % 2 == 0 ? _TrackEvenColor : _TrackOddColor;
 
             pTrackRect = _DrawContentTexture(pTrackRect, pTrackBGColor, 2);
-            GUI.Label(pTrackRect, pTrack.trackType.ToString());
+            GUI.Label(pTrackRect, pTrack.TrackType.ToString());
 
             if (pEvent.type == EventType.ContextClick && pTrackRect.Contains(pEvent.mousePosition))
             {
                 GenericMenu lMenu = new GenericMenu();
 
-                lMenu.AddItem(new GUIContent("Remove Track"), false, () => { pGroup.RemoveTrack(pTrack.trackType); });
+                lMenu.AddItem(new GUIContent("Remove Track"), false, () => { pGroup.RemoveTrack(pTrack.TrackType); });
                 lMenu.ShowAsContext();
             }
 

@@ -8,13 +8,13 @@ namespace UIAnimationTimeLine
     [System.Serializable]
     public class UIAnimationTrack : ITrack
     {
-        public eTrackType trackType { get { return _trackType; } }
+        public eTrackType TrackType => _trackType;
 
-        public int Count { get { return _listClips.Count; } }
+        public int Count => _listClips.Count;
 
-        public IClip this[int lIndex] { get { return _listClips[lIndex]; } }
+        public IClip this[int lIndex] => _listClips[lIndex];
 
-        public Transform target { get { return _target; } }
+        public Transform Target => _target;
 
         [SerializeField]
         eTrackType _trackType;
@@ -90,7 +90,7 @@ namespace UIAnimationTimeLine
         {
             _target = pTarget;
 
-            switch (trackType)
+            switch (TrackType)
             {
                 case eTrackType.Color:
                     _graphicTarget = pTarget.GetComponent<UnityEngine.UI.Graphic>();

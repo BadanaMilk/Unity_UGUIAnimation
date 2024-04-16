@@ -13,9 +13,9 @@ namespace UIAnimationTimeLine
         [SerializeField] [HideInInspector] public bool mViewBasic = true;
         [SerializeField] [HideInInspector] public bool mViewTracks = true;
 
-        public GameObject target { get { return _target; } }
-        public int count { get { return _listTrack.Count; } }
-        public UIAnimationTrack this[int lIndex] { get { return _listTrack[lIndex]; } }
+        public GameObject Target => _target;
+        public int        Count  => _listTrack.Count;
+        public UIAnimationTrack this[int pIndex] => _listTrack[pIndex];
 
         [SerializeField]
         GameObject _target;
@@ -29,7 +29,7 @@ namespace UIAnimationTimeLine
 
             for (int lIndex = 0; lIndex < _listTrack.Count; lIndex++)
             {
-                if (_listTrack[lIndex].target != pTarget)
+                if (_listTrack[lIndex].Target.gameObject != pTarget)
                     _listTrack[lIndex].SetTarget(pTarget.transform);
             }
         }
@@ -60,55 +60,53 @@ namespace UIAnimationTimeLine
 
         public void AddTrack(eTrackType pTrackType)
         {
-            if (_listTrack.FindIndex(lItem => lItem.trackType == pTrackType) == -1)
+            if (_listTrack.FindIndex(lItem => lItem.TrackType == pTrackType) == -1)
                 _listTrack.Add(new UIAnimationTrack(pTrackType, _target.transform));
         }
 
         public void AddTrack(ITrack pTrack)
         {
-            if (pTrack is UIAnimationTrack pResult)
+            if (pTrack is UIAnimationTrack lResult)
             {
-                if(_listTrack.FindIndex(lItem => lItem.trackType == pResult.trackType) == -1)
-                    _listTrack.Add(pResult);
+                if(_listTrack.FindIndex(lItem => lItem.TrackType == lResult.TrackType) == -1)
+                    _listTrack.Add(lResult);
             }
         }
 
         public void RemoveTrack(eTrackType pTrackType)
         {
-            int lIndex = _listTrack.FindIndex(lItem => lItem.trackType == pTrackType);
+            int lIndex = _listTrack.FindIndex(lItem => lItem.TrackType == pTrackType);
             if (lIndex != -1)
                 _listTrack.RemoveAt(lIndex);
         }
 
         public void RemoveTrack(ITrack pTarget)
         {
-            if (pTarget is UIAnimationTrack)
+            if (pTarget is UIAnimationTrack lRemove)
             {
-                var lRemove = pTarget as UIAnimationTrack;
                 _listTrack.Remove(lRemove);
             }
         }
 
         public UIAnimationTrack GetAnimationTrack(eTrackType pTrackType)
         {
-            return _listTrack.Find(lItem => lItem.trackType == pTrackType);
+            return _listTrack.Find(lItem => lItem.TrackType == pTrackType);
         }
 
         public bool IsContainTrack(eTrackType pTrackType)
         {
-            bool lIsPositionType = pTrackType == eTrackType.Position || pTrackType == eTrackType.Position_2D_Bezir;
-            if (lIsPositionType)
+            if (pTrackType is eTrackType.Position or eTrackType.Position_2D_Bezir)
             {
                 for (int lIndex = 0; lIndex < _listTrack.Count; lIndex++)
                 {
-                    if (_listTrack[lIndex].trackType == eTrackType.Position || 
-                        _listTrack[lIndex].trackType == eTrackType.Position_2D_Bezir)
+                    if (_listTrack[lIndex].TrackType == eTrackType.Position || 
+                        _listTrack[lIndex].TrackType == eTrackType.Position_2D_Bezir)
                         return true;
                 }
                 return false;
             }
-            else
-                return _listTrack.FindIndex(lItem => lItem.trackType == pTrackType) != -1;
+
+            return _listTrack.FindIndex(lItem => lItem.TrackType == pTrackType) != -1;
         }
 
         public int FindTrackIndex(UIAnimationTrack pTarget)

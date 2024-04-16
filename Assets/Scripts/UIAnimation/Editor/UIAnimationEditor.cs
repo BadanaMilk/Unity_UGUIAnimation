@@ -248,11 +248,11 @@ public class UIAnimationEditor : Editor
             return;
 
         Rect lTitleRect = EditorGUILayout.GetControlRect(true, 20);
-        _DrawContentTexture(lTitleRect, _titleColor, pTrack.trackType.ToString());
+        _DrawContentTexture(lTitleRect, _titleColor, pTrack.TrackType.ToString());
 
         bool lPrevEnable = GUI.enabled;
         GUI.enabled = pGroup.mLockEditor == false;
-        switch (pTrack.trackType)
+        switch (pTrack.TrackType)
         {
             case eTrackType.Active:
                 _DrawFromToBool(lClip);

@@ -235,7 +235,7 @@ namespace UIAnimationTimeLine
 
         public UIAnimationGroup GetGroupData(GameObject pTarget)
         {
-            return _listAniGroup.Find(lItem => lItem.target == pTarget);
+            return _listAniGroup.Find(lItem => lItem.Target == pTarget);
         }
 
         void _SetTimeLine(float pTime)
@@ -350,7 +350,7 @@ namespace UIAnimationTimeLine
 
             for (int lIndex = 0; lIndex < _listAniGroup.Count; ++lIndex)
             {
-                if (_listAniGroup[lIndex].target == pGameObject)
+                if (_listAniGroup[lIndex].Target == pGameObject)
                     return true;
             }
             return false;

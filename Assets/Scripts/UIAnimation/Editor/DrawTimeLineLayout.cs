@@ -287,7 +287,7 @@ public class DrawTimeLineLayout
         Rect lTrackRect = Rect.MinMaxRect(_scrollRect.xMin, pMinY, _scrollRect.xMax, pMaxX);
         bool lMouseClip = false;
 
-        for (byte lIndex = 0; lIndex < pTrack.count; ++lIndex)
+        for (byte lIndex = 0; lIndex < pTrack.Count; ++lIndex)
         {
             lMouseClip = (lMouseClip || DrawClip(pMinY, pMaxX, pGroup, pTrack, pTrack[lIndex], pEvent));
         }
@@ -324,8 +324,8 @@ public class DrawTimeLineLayout
     {
         bool lMouseClip = false;
 
-        float lStartTime = pClip.startTime;
-        float lEndTime = pClip.endTime;
+        float lStartTime = pClip.StartTime;
+        float lEndTime = pClip.EndTime;
 
         if (lStartTime > maxViewTime)
             return false;
@@ -339,8 +339,8 @@ public class DrawTimeLineLayout
             lEndTime = maxViewTime;
 
         IClip lTargetClip = _GetSelectClip();
-        float lStartPos = _TimeToPos(pClip.startTime);
-        float lEndPos = _TimeToPos(pClip.endTime);
+        float lStartPos = _TimeToPos(pClip.StartTime);
+        float lEndPos = _TimeToPos(pClip.EndTime);
         bool lIsSelectedClip = (lTargetClip == pClip);
         Rect lClipRect = Rect.MinMaxRect(_scrollRect.xMin + lStartPos, pMinY, _scrollRect.xMin + lEndPos, pMaxY);
         if (lClipRect.xMax > _scrollRect.xMax)
@@ -380,11 +380,11 @@ public class DrawTimeLineLayout
                     lMouseClip = true;
                     IClip lBeforeClip = pTrack.GetPrevClip(pClip);
                     IClip lNextClip = pTrack.GetNextClip(pClip);
-                    float lDuration = pClip.duration;
+                    float lDuration = pClip.Duration;
 
                     float lMouseTime = _PosToTime(pEvent.mousePosition.x);
-                    var lTestStart = Mathf.Clamp(lMouseTime - (lDuration * 0.5f), lBeforeClip != null ? lBeforeClip.endTime : 0, lNextClip != null ? lNextClip.startTime - lDuration : length - lDuration);
-                    var lTestEnd = Mathf.Clamp(lMouseTime + (lDuration * 0.5f), lTestStart + lDuration, lNextClip != null ? lNextClip.startTime : length);
+                    var lTestStart = Mathf.Clamp(lMouseTime - (lDuration * 0.5f), lBeforeClip != null ? lBeforeClip.EndTime : 0, lNextClip != null ? lNextClip.StartTime - lDuration : length - lDuration);
+                    var lTestEnd = Mathf.Clamp(lMouseTime + (lDuration * 0.5f), lTestStart + lDuration, lNextClip != null ? lNextClip.StartTime : length);
 
                     pClip.SetStartTime(lTestStart);
                     pClip.SetEndTime(lTestEnd);
@@ -407,7 +407,7 @@ public class DrawTimeLineLayout
                     {
                         lMenu.AddItem(new GUIContent("Link Prev Clip Time"), false, () =>
                         {
-                            pClip.SetStartTime(lBeforeClip.endTime);
+                            pClip.SetStartTime(lBeforeClip.EndTime);
                             onLinkPrevClipEvent(lBeforeClip, pClip);
                         });
                     }
@@ -415,7 +415,7 @@ public class DrawTimeLineLayout
                     {
                         lMenu.AddItem(new GUIContent("Link Next Clip Time"), false, () =>
                         {
-                            pClip.SetEndTime(lNextClip.startTime);
+                            pClip.SetEndTime(lNextClip.StartTime);
                             onLinkNextClipEvent(pClip, lNextClip);
                         });
                     }

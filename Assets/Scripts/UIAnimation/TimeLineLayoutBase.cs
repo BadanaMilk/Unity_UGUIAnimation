@@ -9,7 +9,7 @@
     public interface ITrack
     {
         IClip this[int lIndex] { get; }
-        int count { get; }
+        int Count { get; }
 
         void AddClip(float pTime);
         void RemoveClip(float pTime);
@@ -21,9 +21,9 @@
 
     public interface IClip
     {
-        float duration { get; }
-        float startTime { get; }
-        float endTime { get; }
+        float Duration { get; }
+        float StartTime { get; }
+        float EndTime { get; }
 
         void SetStartTime(float pSecond);
         void SetEndTime(float pSecond);

@@ -425,16 +425,16 @@ public class UIAnimationEditor : Editor
 
         if (lBeforeClip != null)
         {
-            lViewMinTime = lBeforeClip.endTime;
+            lViewMinTime = lBeforeClip.EndTime;
         }
         if (lNextClip != null)
         {
-            lViewMaxTime = lNextClip.startTime;
+            lViewMaxTime = lNextClip.StartTime;
         }
         lViewMaxTime = lViewMaxTime - UIAnimationUtil.minIntervalTime;
 
-        float lStartTime = pClip.startTime;
-        float lEndTime = pClip.endTime;
+        float lStartTime = pClip.StartTime;
+        float lEndTime = pClip.EndTime;
 
         Rect lRect = EditorGUILayout.GetControlRect(true, 18);
         GUI.Label(Rect.MinMaxRect(lRect.xMin, lRect.yMin, lRect.xMin + (lRect.width / 3), lRect.yMax), "Start");
@@ -455,7 +455,7 @@ public class UIAnimationEditor : Editor
         GUI.Label(Rect.MinMaxRect(lRect.xMin, lRect.yMin, lRect.xMin + 30, lRect.yMax), lViewMinTime.ToString("0.##"));
         GUI.Label(Rect.MinMaxRect(lRect.xMax - 30, lRect.yMin, lRect.xMax, lRect.yMax), lViewMaxTime.ToString("0.##"));
 
-        if (pClip.startTime != lStartTime)
+        if (pClip.StartTime != lStartTime)
         {
             pClip.SetStartTime(lStartTime);
 
@@ -463,7 +463,7 @@ public class UIAnimationEditor : Editor
                 pClip.SetEndTime(lStartTime + UIAnimationUtil.minIntervalTime);
         }
 
-        SelectTrackTime(selectGroup, selectTrack, (pClip.startTime + pClip.endTime) / 2f);
+        SelectTrackTime(selectGroup, selectTrack, (pClip.StartTime + pClip.EndTime) / 2f);
     }
 
     private void _DrawTime(UIAnimation pTween, UIAnimationTrack pTrack, UIAnimationClip pClip)
@@ -476,15 +476,15 @@ public class UIAnimationEditor : Editor
 
         if (lBeforeClip != null)
         {
-            lViewMinTime = lBeforeClip.endTime;
+            lViewMinTime = lBeforeClip.EndTime;
         }
         if (lNextClip != null)
         {
-            lViewMaxTime = lNextClip.startTime;
+            lViewMaxTime = lNextClip.StartTime;
         }
 
-        float lStartTime = pClip.startTime;
-        float lEndTime = pClip.endTime;
+        float lStartTime = pClip.StartTime;
+        float lEndTime = pClip.EndTime;
 
         Rect lRect = EditorGUILayout.GetControlRect(true, 18);
         GUI.Label(Rect.MinMaxRect(lRect.xMin, lRect.yMin, lRect.xMin + (lRect.width / 3), lRect.yMax), "Start");
@@ -507,16 +507,16 @@ public class UIAnimationEditor : Editor
         GUI.Label(Rect.MinMaxRect(lRect.xMin, lRect.yMin, lRect.xMin + 30, lRect.yMax), lViewMinTime.ToString("0.##"));
         GUI.Label(Rect.MinMaxRect(lRect.xMax - 30, lRect.yMin, lRect.xMax, lRect.yMax), lViewMaxTime.ToString("0.##"));
 
-        if (pClip.startTime != lStartTime)
+        if (pClip.StartTime != lStartTime)
         {
             pClip.SetStartTime(lStartTime);
         }
-        else if (pClip.endTime != lEndTime)
+        else if (pClip.EndTime != lEndTime)
         {
             pClip.SetEndTime(lEndTime);
         }
 
-        SelectTrackTime(selectGroup, selectTrack, (pClip.startTime + pClip.endTime) / 2f);
+        SelectTrackTime(selectGroup, selectTrack, (pClip.StartTime + pClip.EndTime) / 2f);
     }
 
     private void _DrawContentTexture(Rect pRect, Color pBackColor, string pText)

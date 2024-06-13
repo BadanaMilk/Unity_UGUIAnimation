@@ -1,15 +1,17 @@
-﻿using UnityEngine;
+using TimeLineInterface;
+using UITimeLineAnimation;
+using UITimeLineAnimation.Editor;
+using Unity.VisualScripting;
+using UnityEngine;
 using UnityEditor;
-using UIAnimationTimeLine;
-using TimeLineLayoutBase;
+using UnityEditorInternal;
 
 public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
 {
     public static UIAnimationTimeLineWindow targetWindow;
+    protected override ITimeLineObject targetTimeLine => _targetAnimation;
 
-    protected override IDrawerTimeLine targetTimeLine => targetTween;
-
-    public static void ShowWindow(UIAnimation pTween, UIAnimationEditor pTweenEditor)
+    public static UIAnimationTimeLineWindow ShowWindow(UIAnimation pAnimation, UIAnimationEditor pEditor)
     {
         if (targetWindow == null)
         {
@@ -17,16 +19,15 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
             targetWindow.minSize = new Vector2(600, 300);
         }
 
-        targetWindow._Initialize(pTween, pTweenEditor);
+        targetWindow._Initialize(pAnimation, pEditor);
         targetWindow.Show();
+        targetWindow.Repaint();
+        return targetWindow;
     }
 
-    UIAnimation _targetTween;
-    UIAnimationEditor _targetEditor;
-
-    public UIAnimation targetTween => _targetTween;
-    public UIAnimationEditor targetEditor => _targetEditor;
-
+    private UIAnimation       _targetAnimation;
+    private UIAnimationEditor _targetEditor;
+    
     private void OnEnable()
     {
         targetWindow = this;
@@ -39,46 +40,110 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
         EditorApplication.update -= _EditorUpdate;
     }
 
-    public bool IsTargetTween(UIAnimation pTween, UIAnimationEditor pTweenEditor)
+    public bool IsLinkedEditor(UIAnimation pTween, UIAnimationEditor pTweenEditor)
     {
-        return _targetTween == pTween && _targetEditor == pTweenEditor;
+        return _targetAnimation == pTween && _targetEditor == pTweenEditor;
     }
 
-    private void _Initialize(UIAnimation pTween, UIAnimationEditor pTweenEditor)
+    private void _Initialize(UIAnimation pTargetObject, UIAnimationEditor pTargetEditor)
     {
         titleContent = new GUIContent("UI Animation Time Line");
 
-        if (pTweenEditor != null)
+        if (pTargetEditor != null)
         {
-            _targetTween = pTween;
-            _targetEditor = pTweenEditor;
+            _targetAnimation = pTargetObject;
+            _targetEditor = pTargetEditor;
 
-            if (targetTween != null)
+            if (_targetAnimation != null)
             {
                 if (!Application.isPlaying)
                     Stop(eStopMode.Pause);
             }
         }
-        _TimeLine.Init(targetTween);
+        _Core.Init(_targetAnimation);
+        _Core.SetBindingMethod(GetSelectClip);
+        _Core.SetTrackClickEvent(_SelectTrackAndTime);
+        _Core.SetClipClickEvent(_SelectClip);
+        
+        _Core.SetDragClipEvent((pTrack, pClip, pPositionTime) =>
+        {
+            IClip lBeforeClip = pTrack.GetPrevClip(pClip);
+            IClip lNextClip = pTrack.GetNextClip(pClip);
+            float lDuration = pClip.Duration;
+            
+            var lStartValue = pClip.StartTime + pPositionTime; //pPositionTime - (lDuration * 0.5f);
+            var lEndValue = pClip.EndTime + pPositionTime;   //pPositionTime + (lDuration * 0.5f);
+
+            if (pPositionTime < 0)
+            {
+                var lStartMinValue = lBeforeClip?.EndTime ?? 0;
+                lStartValue = lStartValue < lStartMinValue ? lStartMinValue : lStartValue;
+                lEndValue = lStartValue + lDuration;
+            }
+            else
+            {
+                var lEndMaxValue = lNextClip?.StartTime ?? targetTimeLine.Length;
+                lEndValue = lEndValue > lEndMaxValue ? lEndMaxValue : lEndValue;
+                lStartValue = lEndValue - lDuration;
+            }
+            // var lStartMinValue = lBeforeClip?.EndTime ?? 0;
+            // var lStartMaxValue = lEndValue - lDuration;
+            // lStartValue = Mathf.Clamp(lStartValue, lStartMinValue, lStartMaxValue);
+            //
+            // var lEndMinValue = lStartValue + lDuration;
+            // var lEndMaxValue = lNextClip?.StartTime ?? targetTimeLine.Length;
+            // lEndValue = Mathf.Clamp(lEndValue, lEndMinValue, lEndMaxValue);
+            
+            pClip.SetStartTime(lStartValue);
+            pClip.SetEndTime(lEndValue);
+            Repaint();
+        });
+        
+        _Core.SetClipContextClickEvent((pTrack, pClip, pPositionTime) =>
+        {
+            GenericMenu lMenu = new GenericMenu();
+
+            IClip lBeforeClip = pTrack.GetPrevClip(pClip);
+            IClip lNextClip = pTrack.GetNextClip(pClip);
+
+            if (lBeforeClip != null)
+            {
+                lMenu.AddItem(new GUIContent("Link Prev Clip Time"), false, () =>
+                {
+                    pClip.SetStartTime(lBeforeClip.EndTime);
+                });
+            }
+
+            if (lNextClip != null)
+            {
+                lMenu.AddItem(new GUIContent("Link Next Clip Time"), false, () =>
+                {
+                    pClip.SetEndTime(lNextClip.StartTime);
+                });
+            }
+
+            lMenu.AddItem(new GUIContent("Remove Clip"), false, () => { pTrack.RemoveClip(pPositionTime); });
+            lMenu.ShowAsContext();
+        });
     }
 
     private void _AddActorGroupSelect()
     {
         GameObject[] lObjects = Selection.gameObjects;
-        if (lObjects.Length == 0 || (lObjects.Length == 1 && lObjects[0] == targetTween.gameObject))
+        if (lObjects.Length == 0 || (lObjects.Length == 1 && lObjects[0] == _targetAnimation.gameObject))
         {
-            if (targetTween.IsContainObject(lObjects[0]) == false)
+            if (_targetAnimation.IsContainObject(lObjects[0]) == false)
             {
-                targetTween.AddGroup(null);
+                _targetAnimation.AddGroup(null);
             }
         }
         else
         {
             for (int lIndex = 0; lIndex < lObjects.Length; ++lIndex)
             {
-                if (targetTween.IsContainObject(lObjects[lIndex]) == false)
+                if (_targetAnimation.IsContainObject(lObjects[lIndex]) == false)
                 {
-                    targetTween.AddGroup(lObjects[lIndex]);
+                    _targetAnimation.AddGroup(lObjects[lIndex]);
                 }
             }
         }
@@ -91,9 +156,9 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
 
     private void _ShowRootGroup(Rect pBaseRect, Event pEvent, ref float pNextYPos)
     {
-        for (int lIndex = 0; lIndex < targetTween.Count; ++lIndex)
+        for (int lIndex = 0; lIndex < _targetAnimation.Count; ++lIndex)
         {
-            _ShowGroup(pBaseRect, pEvent, targetTween[lIndex], lIndex, ref pNextYPos);
+            _ShowGroup(pBaseRect, pEvent, _targetAnimation[lIndex], lIndex, ref pNextYPos);
             pNextYPos += 6;
         }
     }
@@ -110,7 +175,7 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
         GUI.color = Color.white;
         if (GUI.Button(lAddRect, "Add Actor Group"))
         {
-            targetTween.AddGroup(null);
+            _targetAnimation.AddGroup(null);
         }
         lAddButtonY += 24;
         lAddRect = Rect.MinMaxRect(pBaseRect.xMin + 5, lAddButtonY, pBaseRect.xMax - 5, lAddButtonY + 20);
@@ -123,26 +188,24 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
     private void _ShowGroup(Rect pBaseRect, Event pEvent, UIAnimationGroup pGroup, int pIndex, ref float pNextPosY)
     {
         Rect lGroupRect = _GetRect(pBaseRect, 20, ref pNextPosY);
-        _AddCursorRect(lGroupRect, targetEditor.selectGroup == null ? MouseCursor.Link : MouseCursor.MoveArrow);
-
-        ReferenceEquals(pGroup, targetEditor.selectGroup);
+        _AddCursorRect(lGroupRect, _targetEditor.selectGroup == null ? MouseCursor.Link : MouseCursor.MoveArrow);
         _DrawContentTexture(lGroupRect, _GroupTitleColor, 0);
 
         bool lViewState = pGroup.mViewAll;
-        DrawerBasic.DrawToggleLabel(new Rect(lGroupRect.x, lGroupRect.y, 16, lGroupRect.height), ref pGroup.mViewAll, Color.white);
+        GUIBasicDrawer.DrawToggleLabel(new Rect(lGroupRect.x, lGroupRect.y, 16, lGroupRect.height), ref pGroup.mViewAll, Color.white);
         if (pGroup.mLockEditor)
         {
             Rect lLockRect = Rect.MinMaxRect(0, 0, 16, 16);
             lLockRect.center = new Vector2(lGroupRect.xMin + 16 + 8, lGroupRect.yMin + 8);
-            DrawerBasic.DrawTexture(lLockRect, Color.white, DrawerBasic.TimeLineStyles.lockIcon.image);
+            GUIBasicDrawer.DrawTexture(lLockRect, Color.white, GUIBasicDrawer.TimeLineStyles.lockIcon.image);
         }
         GUI.Label(new Rect(lGroupRect.x + 32, lGroupRect.y, lGroupRect.width - 16, lGroupRect.height), pGroup.Target == null ? "Group" : $"Group : {pGroup.Target.name}");
 
         // Plus Button
         bool lPlusClicked = false;
-        DrawerBasic.GUIColor(EditorGUIUtility.isProSkin ? Color.white : Color.black);
+        GUIBasicDrawer.GUIColor(EditorGUIUtility.isProSkin ? Color.white : Color.black);
         Rect lPlusRect = new Rect(lGroupRect.xMax - 14, lGroupRect.y + 5, 8, 8);
-        if (GUI.Button(lPlusRect, DrawerBasic.TimeLineStyles.plusIcon, GUIStyle.none))
+        if (GUI.Button(lPlusRect, GUIBasicDrawer.TimeLineStyles.plusIcon, GUIStyle.none))
         {
             lPlusClicked = true;
             pGroup.mViewAll = lViewState;
@@ -150,7 +213,7 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
 
         bool lPrevEnable = GUI.enabled;
         GUI.enabled = pGroup.mLockEditor == false;
-        DrawerBasic.GUIColor(Color.white);
+        GUIBasicDrawer.GUIColor(Color.white);
         // Plus Button or Right Click Content
         if (lPlusClicked || (pEvent.type == EventType.ContextClick && lGroupRect.Contains(pEvent.mousePosition)))
         {
@@ -176,12 +239,12 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
                 for(eTrackType lType = eTrackType.Active; lType < eTrackType.End; lType++)
                 {
                     if (pGroup.IsContainTrack(lType) == false && UIAnimationTrack.IsAvailableTrackType(lType, pGroup.Target))
-                        lMenu.AddItem(new GUIContent(string.Format("Track/{0}", lType.ToString())), false, () => { _AddTrack(pGroup, lType); });
+                        lMenu.AddItem(new GUIContent($"Track/{lType.ToString()}"), false, () => { _AddTrack(pGroup, lType); });
                 }
             }
 
             lMenu.AddSeparator("/");
-            lMenu.AddItem(new GUIContent("Delete Group"), false, () => { targetTween.RemoveGroup(pIndex); });
+            lMenu.AddItem(new GUIContent("Delete Group"), false, () => { _targetAnimation.RemoveGroup(pIndex); });
 
             lMenu.ShowAsContext();
             pEvent.Use();
@@ -209,13 +272,13 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
             {
                 Rect lTitleRect = _GetRect(pBaseRect, 20, ref pNextPosY);
                 lTitleRect = _DrawContentTexture(lTitleRect, _GroupSubTitleColor, 1);
-                DrawerBasic.DrawToggleLabel(new Rect(lTitleRect.x, lTitleRect.y, 16, lTitleRect.height), ref pGroup.mViewTracks, Color.white);
+                GUIBasicDrawer.DrawToggleLabel(new Rect(lTitleRect.x, lTitleRect.y, 16, lTitleRect.height), ref pGroup.mViewTracks, Color.white);
                 GUI.Label(new Rect(lTitleRect.x + 16, lTitleRect.y, lTitleRect.width - 16, lTitleRect.height), "Tracks");
 
                 lPlusClicked = false;
-                DrawerBasic.GUIColor(EditorGUIUtility.isProSkin ? Color.white : Color.black);
+                GUIBasicDrawer.GUIColor(EditorGUIUtility.isProSkin ? Color.white : Color.black);
                 lPlusRect = new Rect(lTitleRect.xMax - 14, lTitleRect.y + 5, 8, 8);
-                if (GUI.Button(lPlusRect, DrawerBasic.TimeLineStyles.plusIcon, GUIStyle.none))
+                if (GUI.Button(lPlusRect, GUIBasicDrawer.TimeLineStyles.plusIcon, GUIStyle.none))
                 {
                     lPlusClicked = true;
                     pGroup.mViewAll = lViewState;
@@ -246,7 +309,7 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
             Rect lEndRect = _GetRect(pBaseRect, 1, ref pNextPosY);
             _DrawContentTexture(lEndRect, _GroupTitleColor, 0);
         }
-        DrawerBasic.BackGUIAllColors();
+        GUIBasicDrawer.BackGUIAllColors();
         GUI.enabled = lPrevEnable;
     }
 
@@ -270,18 +333,18 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
                 lMenu.ShowAsContext();
             }
 
-            _TimeLine.DrawTrack(pTrackRect.yMin, pTrackRect.yMax, pGroup, pTrack, pEvent);
+            _Core.DrawTrack(pTrackRect.yMin, pTrackRect.yMax, pGroup, pTrack, pEvent);
         }
     }
 
     private void Play(ePlayMode pPlayMode)
     {
-        targetTween.Play(pPlayMode);
+        _targetAnimation.Play(pPlayMode);
     }
 
     private void Stop(eStopMode pStopMode)
     {
-        targetTween.Stop(pStopMode);
+        _targetAnimation.Stop(pStopMode);
     }
 
     private void _EditorUpdate()
@@ -292,31 +355,34 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
 
     public override IClip GetSelectClip()
     {
-        if (targetEditor.selectTrack != null)
+        if (_targetEditor.selectClip != null)
         {
-            return targetEditor.selectTrack.GetClip(targetEditor.selectTime);
+            return _targetEditor.selectClip;
+        }
+        return null;
+    }
+
+    public override IClip GetCurrentTimeClip()
+    {
+        if (_targetEditor.selectTrack != null)
+        {
+            return _targetEditor.selectTrack.GetClip(_targetEditor.selectTime);
         }
         return null;
     }
 
     protected override void _SelectTrackAndTime(IGroup pGroup = null, ITrack pTrack = null, float pTime = -1)
     {
-        targetEditor.SelectTrackTime(pGroup, pTrack, pTime);
+        _targetEditor.SelectTrackTime(pGroup, pTrack, pTime);
+        Repaint();
     }
 
-    protected override void _OnLinkPevClipEvent(IClip pPrev, IClip pCurrent)
+    protected override void _SelectClip(IClip pClip = null)
     {
-        UIAnimationClip lCurent = pCurrent as UIAnimationClip;
-        UIAnimationClip lPrev = pPrev as UIAnimationClip;
-        lCurent.SetStartValue(lPrev.endValue);
+        _targetEditor.SelectClip(pClip);
+        Repaint();
     }
-    protected override void _OnLinkNextClipEvent(IClip pCurrent, IClip pNext)
-    {
-        UIAnimationClip lCurent = pCurrent as UIAnimationClip;
-        UIAnimationClip lNext = pNext as UIAnimationClip;
-        lCurent.SetEndValue(lNext.startValue);
-    }
-
+    
     protected override void _DrawContents(Rect pLeftRect, Event pMouseEvent)
     {
         _ShowGroupsAndTracksList(pLeftRect, pMouseEvent);
@@ -324,7 +390,7 @@ public class UIAnimationTimeLineWindow : TimeLineLayoutWindowBase
 
     protected override bool _IsEnableGUI()
     {
-        if (targetTween == null)
+        if (_targetAnimation == null)
         {
             GUILayout.Label("Select to [UI Animation Time Line] and [Edit] Button.");
             return false;

@@ -1,10 +1,9 @@
-using UnityEngine;
-using TimeLineLayoutBase;
 using System.Collections.Generic;
+using TimeLineInterface;
+using UnityEngine;
 
-namespace UIAnimationTimeLine
+namespace UITimeLineAnimation
 {
-    
     [System.Serializable]
     public class UIAnimationTrack : ITrack
     {
@@ -12,7 +11,7 @@ namespace UIAnimationTimeLine
 
         public int Count => _listClips.Count;
 
-        public IClip this[int lIndex] => _listClips[lIndex];
+        public IClip this[int pIndex] => _listClips[pIndex];
 
         public Transform Target => _target;
 

@@ -1,7 +1,7 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace UIAnimationTimeLine
+namespace UITimeLineAnimation
 {
     public class UIAnimationUtil
     {

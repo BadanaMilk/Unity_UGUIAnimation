@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
+using TimeLineInterface;
 using UnityEngine;
-using TimeLineLayoutBase;
 
-namespace UIAnimationTimeLine
+namespace UITimeLineAnimation
 {
     [System.Serializable]
     public enum eTrackType : byte
@@ -42,7 +42,7 @@ namespace UIAnimationTimeLine
         PingPong
     }
 
-    public class UIAnimation : MonoBehaviour, IDrawerTimeLine
+    public class UIAnimation : MonoBehaviour, ITimeLineObject
     {
         public float CurrentTime => _currentTime;
 

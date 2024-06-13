@@ -1,8 +1,8 @@
-using UnityEngine;
-using TimeLineLayoutBase;
 using System.Collections.Generic;
+using TimeLineInterface;
+using UnityEngine;
 
-namespace UIAnimationTimeLine
+namespace UITimeLineAnimation
 {
     [System.Serializable]
     public class UIAnimationGroup : IGroup

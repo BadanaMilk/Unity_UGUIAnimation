@@ -1,7 +1,7 @@
+using TimeLineInterface;
 using UnityEngine;
-using TimeLineLayoutBase;
 
-namespace UIAnimationTimeLine
+namespace UITimeLineAnimation
 {
     [System.Serializable]
     public class UIAnimationClip : IClip
